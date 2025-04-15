@@ -1,7 +1,7 @@
 # Chandrasekhar
 🔗 About the Name: Subrahmanyan Chandrasekhar revolutionized our understanding of stellar evolution. This project aims to apply a similarly rigorous approach to uncovering hidden insights in the cosmos.
 
-
+```markdown
 # Exoplanet Catalog System
 
 A C++ application for managing and analyzing exoplanet data using custom data structures.
@@ -22,20 +22,20 @@ A C++ application for managing and analyzing exoplanet data using custom data st
 
 ## Installation
 
-
+```bash
 git clone https://github.com/yourusername/Chandrasekhar.git
-
 cd Chandrasekhar
-
 make
+```
 
 ## Usage
 
-./bin/exoplanet_analyzer
-
+```bash
+./bin/exoplanet_catalog
+```
 
 **Main Menu Options:**
-
+```
 1. Sort and Export Data
 2. Find Extreme Planets
 3. Display All Planets
@@ -43,66 +43,66 @@ make
 5. Show Habitable Planets
 6. Show Planet Type Distribution
 7. Exit
-
+```
 
 ## Data Structures
 
 ### DynamicArray
-
+```cpp
 // Example usage:
 DynamicArray<Exoplanet> planets;
 planets.push_back(planet);
-
+```
 
 ### HashTable
-
+```cpp
 // Example usage:
 HashTable<std::string, int> typeCounts(17);
 typeCounts.insert("Gas Giant", 42);
-
+```
 
 ### MaxHeap
-
+```cpp
 // Example usage:
 MaxHeap<Exoplanet> largestPlanets;
 largestPlanets.push(planet);
-
+```
 
 ## Examples
 
 ### Finding Top 5 Largest Planets
-
+```bash
 Menu > 2 (Find Extreme Planets) > 1 (Largest Radii) > 5
-
+```
 Output:
-
+```
 Top 5 Largest Exoplanets:
 Kepler-39 b          15.2 R⊕     1450 K
 HD 100546 b          12.8 R⊕     2100 K
-
+```
 
 ### Displaying Habitable Planets
-
+```bash
 Menu > 5 (Show Habitable Planets)
-
+```
 Output:
-
+```
 List of Habitable Planets:
 Kepler-186 f         225 K
 Kepler-442 b         233 K
-
+```
 
 ## File Structure
 
-
-bin/exoplanet-catalog/
+```
+exoplanet-catalog/
 ├── include/          # Header files
 │   ├── datastructs/  # Custom data structures
 │   └── algorithms/   # Sorting implementations
 ├── src/              # Source files
-├── file.csv          # Sample CSV data
+├── data/             # Sample CSV data
 └── Makefile          # Build configuration
-
+```
 
 ## Contributing
 
@@ -115,4 +115,3 @@ bin/exoplanet-catalog/
 ## License
 
 MIT License - See [LICENSE](LICENSE) for details.
-```
