@@ -273,3 +273,38 @@ void ExoplanetCatalog::findTopExtremes(size_t n, const std::string& property, bo
         heap.pop();
     }
 }
+
+void ExoplanetCatalog::printGravityAndWeightForPlanet(const Exoplanet& planet) const {
+    if (std::isnan(planet.koi_prad)) {
+        std::cout << "Radius data not available for this planet.\n";
+        return;
+    }
+
+    double gravity = std::pow(planet.koi_prad, 1.7); // relative to Earth
+    double userWeight;
+    std::cout << "Enter your Earth weight (kg): ";
+    std::cin >> userWeight;
+
+    double weightOnPlanet = userWeight * gravity;
+
+    std::cout << "\n=== Surface Gravity Info ===\n"
+              << "Planet: " << planet.kepoi_name << "\n"
+              << "Estimated Gravity: " << std::fixed << std::setprecision(2) << gravity << " g (Earth)\n"
+              << "Your Weight: " << std::fixed << std::setprecision(2) << weightOnPlanet << " kg\n";
+}
+
+void ExoplanetCatalog::printEscapeVelocityForPlanet(const Exoplanet& planet) const {
+    if (std::isnan(planet.koi_prad)) {
+        std::cout << "Radius data not available for this planet.\n";
+        return;
+    }
+
+    double escapeVelocity = 11.2 * std::pow(planet.koi_prad, 1.35);
+
+    std::cout << "\n=== Escape Velocity Info ===\n"
+              << "Planet: " << planet.kepoi_name << "\n"
+              << "Estimated Escape Velocity: " 
+              << escapeVelocity << " km/s\n"
+              << "So if you were to throw a ball with velocity " << escapeVelocity<< "km/s, it would enter space!" <<"\n"
+              << std::fixed << std::setprecision(2);
+}

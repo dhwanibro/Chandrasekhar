@@ -36,6 +36,8 @@ public:
     };
     void findTopExtremes(size_t n, const std::string& property, bool findMax);
     Stats analyzePeriods() const;
+
+    void printGravityAndWeightForPlanet(const Exoplanet& planet) const;
     
     // Visualization
     void printTopNByRadius(int n) const;
@@ -43,6 +45,8 @@ public:
     HashTable<std::string, int> analyzePlanetTypes() const;
     void printPlanetTypeAnalysis() const;
     
+    void printEscapeVelocityForPlanet(const Exoplanet& planet) const;
+
     // Habitable planets functionality
     void printHabitablePlanets() const;
    DynamicArray<Exoplanet> findHabitablePlanets() const;
