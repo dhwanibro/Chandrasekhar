@@ -24,7 +24,9 @@ A C++ application for managing and analyzing exoplanet data using custom data st
 
 
 git clone https://github.com/yourusername/Chandrasekhar.git
+
 cd Chandrasekhar
+
 make
 
 ## Usage
