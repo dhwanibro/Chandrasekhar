@@ -6,7 +6,6 @@
 #include <iomanip>
 #include <filesystem>
 
-
 namespace fs = std::filesystem;
 
 MainMenu::MainMenu() {
@@ -20,35 +19,37 @@ MainMenu::MainMenu() {
     }
 }
 
+void MainMenu::displayMainMenu() {
+    std::cout << "\n==== Exoplanet Catalog ====\n"
+              << "1. Sort and Export Data\n"
+              << "2. Find Extreme Planets\n"
+              << "3. Display All Planets\n"
+              << "4. Search Planet\n"
+              << "5. Show Habitable Planets\n"
+              << "6. Show Planet Type Distribution\n"
+              << "7. Exit\n"
+              << "=========================\n"
+              << "Enter choice: ";
+}
+
 void MainMenu::run() {
     int choice;
     do {
         displayMainMenu();
         std::cin >> choice;
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cin.ignore();
 
         switch(choice) {
             case 1: sortSubMenu(); break;
-            case 2: analyzeSubMenu(); break;
-            case 3: visualizeSubMenu(); break;
-            case 4: displayAllPlanets(); break;
-            case 5: searchPlanet(); break;
-            case 6: break; // Exit
+            case 2: extremeFinderSubMenu(); break;
+            case 3: displayAllPlanets(); break;
+            case 4: searchPlanet(); break;
+            case 5: displayHabitablePlanets(); break;
+            case 6: catalog.printPlanetTypeAnalysis(); break;
+            case 7: break; // Exit
             default: std::cout << "Invalid choice\n";
         }
-    } while (choice != 6);
-}
-
-void MainMenu::displayMainMenu() {
-    std::cout << "\n==== Exoplanet Catalog ====\n"
-              << "1. Sort and Export Data\n"
-              << "2. Analyze Orbital Periods\n"
-              << "3. Visualize Data\n"
-              << "4. Display All Planets\n"
-              << "5. Search Planet\n"
-              << "6. Exit\n"
-              << "=========================\n"
-              << "Enter choice: ";
+    } while (choice != 7);
 }
 
 void MainMenu::sortSubMenu() {
@@ -61,9 +62,9 @@ void MainMenu::sortSubMenu() {
                   << "4. Back\n"
                   << "======================\n"
                   << "Enter choice: ";
-        
+
         std::cin >> choice;
-        
+
         switch(choice) {
             case 1:
                 catalog.sortByPeriod();
@@ -82,47 +83,6 @@ void MainMenu::sortSubMenu() {
                 break;
         }
     } while (choice != 4);
-}
-
-void MainMenu::analyzeSubMenu() {
-    auto stats = catalog.analyzePeriods();
-    std::cout << "\n=== Orbital Period Stats ===\n"
-              << std::fixed << std::setprecision(2)
-              << "Mean:   " << std::setw(8) << stats.mean << " days\n"
-              << "Median: " << std::setw(8) << stats.median << " days\n"
-              << "Min:    " << std::setw(8) << stats.min << " days\n"
-              << "Max:    " << std::setw(8) << stats.max << " days\n";
-}
-
-void MainMenu::visualizeSubMenu() {
-    int choice;
-    do {
-        std::cout << "\n=== Visualizations ===\n"
-                  << "1. Top Planets by Radius\n"
-                  << "2. Temperature Histogram\n"
-                  << "3. Back\n"
-                  << "======================\n"
-                  << "Enter choice: ";
-        
-        std::cin >> choice;
-        
-        switch(choice) {
-            case 1: {
-                int n;
-                std::cout << "Number of planets to show: ";
-                std::cin >> n;
-                catalog.printTopNByRadius(n);
-                break;
-            }
-            case 2: {
-                int bins;
-                std::cout << "Number of histogram bins: ";
-                std::cin >> bins;
-                catalog.printTemperatureHistogram(bins);
-                break;
-            }
-        }
-    } while (choice != 3);
 }
 
 void MainMenu::searchPlanet() {
@@ -155,11 +115,82 @@ void MainMenu::searchPlanet() {
 void MainMenu::displayAllPlanets() {
     const auto& planets = catalog.getPlanets();
     std::cout << "\n=== All Planets (" << planets.size() << ") ===\n";
-    
+
     for (const auto& planet : planets) {
         std::cout << planet.kepoi_name << ": " 
                   << "P=" << planet.koi_period << "d, "
                   << "R=" << planet.koi_prad << "R⊕, "
                   << "T=" << planet.koi_teq << "K\n";
     }
+}
+
+void MainMenu::displayHabitablePlanets() {
+    auto habitable = catalog.findHabitablePlanets();
+    std::cout << "\n=== Habitable Planets (" << habitable.size() << ") ===\n";
+
+    if (habitable.empty()) {
+        std::cout << "No potentially habitable planets found.\n";
+        return;
+    }
+
+    for (const auto& planet : habitable) {
+        std::cout << planet.kepoi_name << ": "
+                  << "P=" << planet.koi_period << "d, "
+                  << "R=" << planet.koi_prad << "R⊕, "
+                  << "T=" << planet.koi_teq << "K\n";
+    }
+}
+
+void MainMenu::extremeFinderSubMenu() {
+    int choice;
+    size_t n = 5;
+    std::string type;
+    
+    std::cout << "How many extremes to show (default 5)? ";
+    std::string input;
+    std::getline(std::cin, input);
+    if (!input.empty()) {
+        try {
+            n = std::stoul(input);
+        } catch (...) {
+            std::cout << "Invalid input, using default 5\n";
+        }
+    }
+
+    do {
+        std::cout << "\n=== Find Extreme Planets ===\n"
+                  << "1. Largest Radii\n"
+                  << "2. Smallest Radii\n"
+                  << "3. Highest Temperatures\n"
+                  << "4. Lowest Temperatures\n"
+                  << "5. Longest Orbital Periods\n"
+                  << "6. Shortest Orbital Periods\n"
+                  << "7. Highest Insolation\n"
+                  << "8. Lowest Insolation\n"
+                  << "9. Back\n"
+                  << "======================\n"
+                  << "Enter choice: ";
+        std::cin >> choice;
+        std::cin.ignore();
+
+        bool findMax;
+        std::string property;
+        
+        switch(choice) {
+            case 1: property = "radius"; findMax = true; break;
+            case 2: property = "radius"; findMax = false; break;
+            case 3: property = "temperature"; findMax = true; break;
+            case 4: property = "temperature"; findMax = false; break;
+            case 5: property = "period"; findMax = true; break;
+            case 6: property = "period"; findMax = false; break;
+            case 7: property = "insolation"; findMax = true; break;
+            case 8: property = "insolation"; findMax = false; break;
+            case 9: return;
+            default: 
+                std::cout << "Invalid choice\n";
+                continue;
+        }
+        
+        catalog.findTopExtremes(n, property, findMax);
+    } while (true);
 }

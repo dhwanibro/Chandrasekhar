@@ -1,12 +1,13 @@
 #include "../include/ExoplanetCatalog.hpp"
 #include "../include/fileio.hpp"
 #include "../include/algorithms/sorting.hpp"
+#include "../include/datastructs/HashTable.hpp"
+#include "../include/datastructs/MaxHeap.hpp"
 #include <numeric>
 #include <cmath>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <algorithm>
 
 void ExoplanetCatalog::addPlanet(const Exoplanet& planet) {
     planets.push_back(planet);
@@ -56,109 +57,219 @@ void ExoplanetCatalog::sortByTemperature() {
         });
 }
 
-ExoplanetCatalog::Stats ExoplanetCatalog::analyzePeriods() const {
-    Stats stats;
-    if (planets.empty()) return stats;
-    
-    DynamicArray<double> periods;
-    for (const auto& planet : planets) {
-        if (!std::isnan(planet.koi_period)) {
-            periods.push_back(planet.koi_period);
+double calculateMin(const DynamicArray<double>& data) {
+    if (data.size() == 0) return NAN; // Handle empty case
+    double min_val = data[0];
+    for (size_t i = 1; i < data.size(); ++i) {
+        if (data[i] < min_val) {
+            min_val = data[i];
         }
     }
-    
-    if (periods.empty()) return stats;
-    
-    algo::quick_sort(periods.begin(), periods.end());
-    
-    stats.min = periods[0];
-    stats.max = periods[periods.size() - 1];
-    
-    stats.mean = std::accumulate(periods.begin(), periods.end(), 0.0) / periods.size();
-    
-    size_t mid = periods.size() / 2;
-    stats.median = (periods.size() % 2 == 0) ?
-        (periods[mid-1] + periods[mid]) / 2 :
-        periods[mid];
-    
-    return stats;
+    return min_val;
 }
 
-void ExoplanetCatalog::printTemperatureHistogram(int bins) const {
-    if (planets.empty()) {
-        std::cout << "No data available for histogram.\n";
-        return;
-    }
-
-    double min_temp = std::numeric_limits<double>::max();
-    double max_temp = std::numeric_limits<double>::lowest();
-    size_t valid_count = 0;
-
-    for (const auto& planet : planets) {
-        if (!std::isnan(planet.koi_teq)) {
-            min_temp = std::min(min_temp, planet.koi_teq);
-            max_temp = std::max(max_temp, planet.koi_teq);
-            valid_count++;
+double calculateMax(const DynamicArray<double>& data) {
+    if (data.size() == 0) return NAN; // Handle empty case
+    double max_val = data[0];
+    for (size_t i = 1; i < data.size(); ++i) {
+        if (data[i] > max_val) {
+            max_val = data[i];
         }
     }
+    return max_val;
+}
 
-    if (valid_count == 0) {
-        std::cout << "No valid temperature data available.\n";
-        return;
+double calculateMean(const DynamicArray<double>& data) {
+    if (data.size() == 0) return NAN; // Handle empty case
+    double sum = 0.0;
+    for (size_t i = 0; i < data.size(); ++i) {
+        sum += data[i];
     }
+    return sum / data.size();
+}
 
-    double bin_size = (max_temp - min_temp) / bins;
- DynamicArray<int> counts;
-    counts.resize(bins);  // Or initialize properly based on your DynamicArray implementation
-    for (int i = 0; i < bins; i++) {
-        counts.push_back(0);
-    }
-
-    for (const auto& planet : planets) {
-        if (!std::isnan(planet.koi_teq)) {
-            int bin = static_cast<int>((planet.koi_teq - min_temp) / bin_size);
-            if (bin == bins) bin--;
-            counts[bin]++;
-        }
-    }
-
-    std::cout << "Temperature Distribution (K):\n";
-    for (int i = 0; i < bins; ++i) {
-        double lower = min_temp + i * bin_size;
-        double upper = lower + bin_size;
-        std::cout << std::fixed << std::setprecision(1) 
-                  << "[" << lower << " - " << upper << ") : " 
-                  << std::string(counts[i] * 50 / valid_count, '#') 
-                  << " (" << counts[i] << ")\n";
+double calculateMedian(DynamicArray<double>& data) {
+    if (data.size() == 0) return NAN; // Handle empty case
+    // Sorting data manually using quicksort
+    algo::quick_sort(data.begin(), data.end());
+    
+    size_t mid = data.size() / 2;
+    if (data.size() % 2 == 0) {
+        return (data[mid - 1] + data[mid]) / 2.0;
+    } else {
+        return data[mid];
     }
 }
 
-void ExoplanetCatalog::printTopNByRadius(int n) const {
-    if (planets.empty()) {
-        std::cout << "No planets available.\n";
+HashTable<std::string, int> ExoplanetCatalog::analyzePlanetTypes() const {
+    HashTable<std::string, int> typeCounts(17); // Prime number for better distribution
+    
+    for (const auto& planet : planets) {
+        if (std::isnan(planet.koi_prad) || std::isnan(planet.koi_teq)) continue;
+        
+        std::string type;
+        double radius = planet.koi_prad;
+        double temp = planet.koi_teq;
+        
+        // Radius classification
+        if (radius < 1.0) type = "Sub-Earth";
+        else if (radius < 1.5) type = "Earth-like";
+        else if (radius < 2.0) type = "Super-Earth";
+        else if (radius < 6.0) type = "Mini-Neptune";
+        else type = "Gas Giant";
+        
+        // Temperature classification
+        if (temp < 200) type += " (Frozen)";
+        else if (temp < 300) type += " (Temperate)";
+        else if (temp < 500) type += " (Warm)";
+        else if (temp < 1000) type += " (Hot)";
+        else type += " (Scorching)";
+        
+        // Count using HashTable
+        if (typeCounts.contains(type)) {
+            typeCounts[type]++;
+        } else {
+            typeCounts.insert(type, 1);
+        }
+    }
+    
+    return typeCounts;
+}
+
+void ExoplanetCatalog::printPlanetTypeAnalysis() const {
+    auto typeCounts = analyzePlanetTypes();
+    
+    std::cout << "\nPlanet Type Distribution:\n";
+    std::cout << "-------------------------\n";
+    
+    // Create a DynamicArray to store and sort the types
+    DynamicArray<std::pair<std::string, int>> sortedTypes;
+    
+    // Collect all types
+    for (size_t i = 0; i < typeCounts.bucketCount(); ++i) {
+        auto* entry = typeCounts.getBucket(i);
+        while (entry) {
+            sortedTypes.push_back(std::make_pair(entry->key, entry->value));
+            entry = entry->next;
+        }
+    }
+    
+    // Sort by count (descending) using your quick_sort
+    algo::quick_sort(sortedTypes.begin(), sortedTypes.end(),
+        [](const auto& a, const auto& b) { return b.second < a.second; });
+    
+    // Print results
+    for (size_t i = 0; i < sortedTypes.size(); ++i) {
+        const auto& pair = sortedTypes[i];
+        std::cout << std::setw(25) << pair.first 
+                  << ": " << pair.second << " planets\n";
+    }
+}
+
+DynamicArray<Exoplanet> ExoplanetCatalog::findHabitablePlanets() const {
+    DynamicArray<Exoplanet> habitable;
+
+    for (const auto& planet : planets) {
+        if (planet.koi_disposition == "CONFIRMED" &&
+            planet.koi_prad >= 0.8 && planet.koi_prad <= 1.5 &&
+            planet.koi_teq >= 200 && planet.koi_teq <= 300) {
+            habitable.push_back(planet);
+        }
+    }
+
+    return habitable;
+}
+
+void ExoplanetCatalog::printHabitablePlanets() const {
+    DynamicArray<Exoplanet> habitablePlanets = findHabitablePlanets();
+
+    if (habitablePlanets.empty()) {
+        std::cout << "No habitable planets found.\n";
         return;
     }
 
-    DynamicArray<Exoplanet> sorted = planets;
-    
-    algo::quick_sort(sorted.begin(), sorted.end(), 
-        [](const Exoplanet& a, const Exoplanet& b) {
-            return a.koi_prad > b.koi_prad;
-        });
+    std::cout << "\nList of Habitable Planets:\n";
+    std::cout << std::setw(25) << "Planet Name"
+              << std::setw(20) << "Equilibrium Temp (K)" << "\n";
 
-    std::cout << "\nTop " << n << " Largest Exoplanets:\n";
-    std::cout << std::setw(20) << "Name" 
-              << std::setw(15) << "Radius (Earth)" 
-              << std::setw(15) << "Temperature (K)\n";
-    
-    int count = 0;
-    for (const auto& planet : sorted) {
-        if (count >= n) break;
-        if (!std::isnan(planet.koi_prad)) {
-            std::cout << std::setw(20) << planet.kepoi_name
-                      << std::setw(15) << planet.koi_prad
-                      << std::setw(15) << planet.koi_teq << "\n";
-            count++;
+    for (size_t i = 0; i < habitablePlanets.size(); ++i) {
+        const auto& planet = habitablePlanets[i];
+        std::cout << std::setw(25) << planet.kepoi_name
+                  << std::setw(20) << planet.koi_teq << "\n";
+    }
+}
+// Implement the comparator first
+bool PlanetComparator::operator()(const Exoplanet& a, const Exoplanet& b) const {
+    if (prop == "radius") return a.koi_prad < b.koi_prad;
+    if (prop == "temperature") return a.koi_teq < b.koi_teq;
+    if (prop == "period") return a.koi_period < b.koi_period;
+    if (prop == "insolation") return a.koi_insol < b.koi_insol;
+    return false;
+}
+
+void ExoplanetCatalog::findTopExtremes(size_t n, const std::string& property, bool findMax) {
+    // Define comparator as lambda
+    auto compare = [property, findMax](const Exoplanet& a, const Exoplanet& b) {
+        double a_val = 0, b_val = 0;
+        
+        if (property == "radius") {
+            a_val = a.koi_prad;
+            b_val = b.koi_prad;
         }
+        else if (property == "temperature") {
+            a_val = a.koi_teq;
+            b_val = b.koi_teq;
+        }
+        else if (property == "period") {
+            a_val = a.koi_period;
+            b_val = b.koi_period;
+        }
+        else if (property == "insolation") {
+            a_val = a.koi_insol;
+            b_val = b.koi_insol;
+        }
+        
+        return findMax ? (a_val < b_val) : (a_val > b_val);
+    };
+
+    // Create heap with the comparator
+    MaxHeap<Exoplanet, decltype(compare)> heap(compare);
+    
+    // Filter and add to heap
+    for (size_t i = 0; i < planets.size(); ++i) {
+        const auto& planet = planets[i];
+        if (property == "radius" && !std::isnan(planet.koi_prad)) {
+            heap.push(planet);
+        }
+        else if (property == "temperature" && !std::isnan(planet.koi_teq)) {
+            heap.push(planet);
+        }
+        else if (property == "period" && !std::isnan(planet.koi_period)) {
+            heap.push(planet);
+        }
+        else if (property == "insolation" && !std::isnan(planet.koi_insol)) {
+            heap.push(planet);
+        }
+    }
+
+    // Display results
+    std::cout << "\nTop " << n << " " << (findMax ? "maximum" : "minimum") 
+              << " planets by " << property << ":\n";
+    std::cout << std::setw(25) << "Name" 
+              << std::setw(15) << property 
+              << std::setw(15) << "Temp (K)" << "\n";
+    
+    for (size_t i = 0; i < n && !heap.empty(); ++i) {
+        const auto& planet = heap.top();
+        std::cout << std::setw(25) << planet.kepoi_name
+                  << std::setw(15);
+        
+        if (property == "radius") std::cout << planet.koi_prad;
+        else if (property == "temperature") std::cout << planet.koi_teq;
+        else if (property == "period") std::cout << planet.koi_period;
+        else if (property == "insolation") std::cout << planet.koi_insol;
+        
+        std::cout << std::setw(15) << planet.koi_teq << "\n";
+        heap.pop();
     }
 }

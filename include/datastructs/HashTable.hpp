@@ -84,4 +84,10 @@ public:
     }
 
     size_t size() const { return _size; }
+    size_t bucketCount() const { return buckets.size(); }
+    
+    Entry* getBucket(size_t index) const {
+        if (index >= buckets.size()) return nullptr;
+        return buckets[index];
+    }
 };

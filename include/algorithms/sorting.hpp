@@ -36,8 +36,10 @@ namespace algo {
     // Merge function for merge_sort
     template <typename Iterator>
     void merge(Iterator first, Iterator middle, Iterator last) {
-        using ValueType = typename Iterator::value_type;
-        DynamicArray<ValueType> temp(std::distance(first, last));
+        using ValueType = typename std::iterator_traits<Iterator>::value_type;  // Using iterator_traits for correct value_type
+        
+        // Ensure DynamicArray supports RandomAccessIterator
+        DynamicArray<ValueType> temp(std::distance(first, last));  
         
         Iterator left = first;
         Iterator right = middle;

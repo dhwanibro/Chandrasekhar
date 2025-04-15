@@ -13,9 +13,13 @@ private:
     void visualizeSubMenu();
     void searchPlanet();
     void displayAllPlanets();
+    void findTopExtremes(); 
     void saveSortedData(const std::string& sortType);
+    void displayHabitablePlanets();
+    void displayPlanetExtremes();
+    void extremeFinderSubMenu();
     
-public:
+    public:
     MainMenu(); // Constructor to load data automatically
     void run();
 };

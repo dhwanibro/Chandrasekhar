@@ -1,5 +1,6 @@
 #pragma once
 #include "DynamicArray.hpp"
+#include <functional>
 
 template <typename T, typename Compare = std::less<T>>
 class MaxHeap {
@@ -19,11 +20,10 @@ class MaxHeap {
     }
 
     void heapify_down(size_t index) {
-        size_t left, right, largest;
         while (true) {
-            left = 2 * index + 1;
-            right = 2 * index + 2;
-            largest = index;
+            size_t left = 2 * index + 1;
+            size_t right = 2 * index + 2;
+            size_t largest = index;
 
             if (left < heap.size() && comp(heap[largest], heap[left])) {
                 largest = left;
@@ -43,7 +43,7 @@ class MaxHeap {
     }
 
 public:
-    MaxHeap() = default;
+    MaxHeap(const Compare& comp = Compare()) : comp(comp) {}
     
     void push(const T& value) {
         heap.push_back(value);

@@ -6,7 +6,7 @@
 
 template <typename T>
 class DynamicArray {
-    public:
+public:
     T* data;
     size_t _capacity;
     size_t _size;
@@ -23,6 +23,14 @@ class DynamicArray {
 
     // ✅ Default Constructor
     DynamicArray() : data(new T[1]), _capacity(1), _size(0) {}
+
+    // ✅ Constructor with size argument
+    explicit DynamicArray(size_t size) 
+        : data(new T[size]), _capacity(size), _size(size) {
+        for (size_t i = 0; i < size; ++i) {
+            data[i] = T(); // Initialize elements to default value
+        }
+    }
 
     // ✅ Copy Constructor (Deep Copy)
     DynamicArray(const DynamicArray& other) 
@@ -78,6 +86,20 @@ class DynamicArray {
     // ✅ Destructor
     ~DynamicArray() { 
         delete[] data;
+    }
+    T& back() {
+    if (_size == 0) throw std::out_of_range("Array is empty");
+    return data[_size - 1];
+    }
+
+    const T& back() const {
+        if (_size == 0) throw std::out_of_range("Array is empty");
+        return data[_size - 1];
+    }
+
+    void pop_back() {
+        if (_size == 0) throw std::out_of_range("Array is empty");
+        _size--;
     }
 
     void push_back(const T& value) {
