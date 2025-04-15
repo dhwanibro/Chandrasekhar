@@ -13,7 +13,7 @@ private:
 
     DynamicArray<Entry*> buckets;
     size_t _size;
-    
+
     size_t hash(const K& key) const {
         return std::hash<K>{}(key) % buckets.size();
     }
@@ -24,7 +24,7 @@ public:
             buckets[i] = nullptr;
         }
     }
-    
+
     ~HashTable() {
         clear();
     }
@@ -32,7 +32,7 @@ public:
     void insert(const K& key, const V& value) {
         size_t index = hash(key);
         Entry* current = buckets[index];
-        
+
         while (current) {
             if (current->key == key) {
                 current->value = value;
@@ -40,7 +40,7 @@ public:
             }
             current = current->next;
         }
-        
+
         Entry* newEntry = new Entry(key, value);
         newEntry->next = buckets[index];
         buckets[index] = newEntry;
@@ -50,7 +50,7 @@ public:
     bool contains(const K& key) const {
         size_t index = hash(key);
         Entry* current = buckets[index];
-        
+
         while (current) {
             if (current->key == key) return true;
             current = current->next;
@@ -61,12 +61,24 @@ public:
     V& operator[](const K& key) {
         size_t index = hash(key);
         Entry* current = buckets[index];
-        
+
         while (current) {
             if (current->key == key) return current->value;
             current = current->next;
         }
-        
+
+        throw std::out_of_range("Key not found");
+    }
+
+    const V& operator[](const K& key) const { // const overload
+        size_t index = hash(key);
+        Entry* current = buckets[index];
+
+        while (current) {
+            if (current->key == key) return current->value;
+            current = current->next;
+        }
+
         throw std::out_of_range("Key not found");
     }
 
@@ -85,7 +97,7 @@ public:
 
     size_t size() const { return _size; }
     size_t bucketCount() const { return buckets.size(); }
-    
+
     Entry* getBucket(size_t index) const {
         if (index >= buckets.size()) return nullptr;
         return buckets[index];

@@ -16,7 +16,8 @@ class ExoplanetCatalog {
 private:
     DynamicArray<Exoplanet> planets;
     BinarySearchTree<double, Exoplanet*> tempTree;
-    
+    HashTable<std::string, Exoplanet*> nameIndex;
+      
 public:
     // Core functionality
     void loadData(const std::string& filename);
@@ -39,6 +40,8 @@ public:
 
     void printGravityAndWeightForPlanet(const Exoplanet& planet) const;
     
+    Exoplanet* findPlanetByName(const std::string& name) const;
+
     // Visualization
     void printTopNByRadius(int n) const;
     void addPlanet(const Exoplanet& planet);

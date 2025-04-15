@@ -29,12 +29,29 @@ bool ExoplanetCatalog::saveResults(const std::string& filename) const {
 
 void ExoplanetCatalog::buildIndices() {
     tempTree.clear();
-    for (const auto& planet : planets) {
+    nameIndex.clear(); // clear hash table before rebuilding
+
+    for (auto& planet : planets) {
+        // Insert into temperature index (if needed)
         if (!std::isnan(planet.koi_teq)) {
-            tempTree.insert(planet.koi_teq, const_cast<Exoplanet*>(&planet));
+            tempTree.insert(planet.koi_teq, &planet);
+        }
+
+        // Insert both KOI and Kepler names into the hash table
+        nameIndex.insert(planet.kepoi_name, &planet);
+        if (!planet.kepler_name.empty()) {
+            nameIndex.insert(planet.kepler_name, &planet);
         }
     }
 }
+
+Exoplanet* ExoplanetCatalog::findPlanetByName(const std::string& name) const {
+    if (nameIndex.contains(name)) {
+        return nameIndex[name]; // returns Exoplanet*
+    }
+    return nullptr;
+}
+
 
 void ExoplanetCatalog::sortByPeriod() {
     algo::quick_sort(planets.begin(), planets.end(), 
@@ -286,6 +303,7 @@ void ExoplanetCatalog::printGravityAndWeightForPlanet(const Exoplanet& planet) c
     std::cin >> userWeight;
 
     double weightOnPlanet = userWeight * gravity;
+
 
     std::cout << "\n=== Surface Gravity Info ===\n"
               << "Planet: " << planet.kepoi_name << "\n"

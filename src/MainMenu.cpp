@@ -85,80 +85,44 @@ void MainMenu::sortSubMenu() {
     } while (choice != 4);
 }
 
-// void MainMenu::searchPlanet() {
-//     std::string name;
-//     std::cout << "Enter planet KOI or Kepler name: ";
-//     std::getline(std::cin, name);
-
-//     const auto& planets = catalog.getPlanets();
-//     bool found = false;
-
-//     for (const auto& planet : planets) {
-//         if (planet.kepoi_name == name || planet.kepler_name == name) {
-//             std::cout << "\n=== Planet Found ===\n"
-//                       << "KOI Name: " << planet.kepoi_name << "\n"
-//                       << "Kepler Name: " << (planet.kepler_name.empty() ? "N/A" : planet.kepler_name) << "\n"
-//                       << "Period: " << planet.koi_period << " days\n"
-//                       << "Radius: " << planet.koi_prad << " Earth radii\n"
-//                       << "Temp: " << planet.koi_teq << " K\n"
-//                       << "Status: " << planet.koi_disposition << "\n";
-//             found = true;
-//             break;
-//         }
-//     }
-
-//     if (!found) {
-//         std::cout << "Planet not found. Try exact KOI name (e.g., K00752.02)\n";
-//     }
-// }
-
 void MainMenu::searchPlanet() {
     std::string name;
     std::cout << "Enter planet KOI or Kepler name: ";
     std::getline(std::cin, name);
 
-    const auto& planets = catalog.getPlanets();
-    bool found = false;
+    Exoplanet* planet = catalog.findPlanetByName(name);
 
-    for (const auto& planet : planets) {
-        if (planet.kepoi_name == name || planet.kepler_name == name) {
-            std::cout << "\n=== Planet Found ===\n"
-                      << "KOI Name: " << planet.kepoi_name << "\n"
-                      << "Kepler Name: " << (planet.kepler_name.empty() ? "N/A" : planet.kepler_name) << "\n"
-                      << "Period: " << planet.koi_period << " days\n"
-                      << "Radius: " << planet.koi_prad << " Earth radii\n"
-                      << "Temp: " << planet.koi_teq << " K\n"
-                      << "Status: " << planet.koi_disposition << "\n";
+    if (planet) {
+        std::cout << "\n=== Planet Found ===\n"
+                  << "KOI Name: " << planet->kepoi_name << "\n"
+                  << "Kepler Name: " << (planet->kepler_name.empty() ? "N/A" : planet->kepler_name) << "\n"
+                  << "Period: " << planet->koi_period << " days\n"
+                  << "Radius: " << planet->koi_prad << " Earth radii\n"
+                  << "Temp: " << planet->koi_teq << " K\n"
+                  << "Status: " << planet->koi_disposition << "\n";
 
-            // Add sub-menu
-            int choice;
-            do {
-                std::cout << "\n1. Check your weight on this planet\n"
-                     << "2. Check escape velocity\n"
-                     << "3. Back to main menu\n"
-                     << "Enter choice: ";
-                std::cin >> choice;
-                std::cin.ignore();
+        int choice;
+        do {
+            std::cout << "\n1. Check your weight on this planet\n"
+                      << "2. Check escape velocity\n"
+                      << "3. Back to main menu\n"
+                      << "Enter choice: ";
+            std::cin >> choice;
+            std::cin.ignore();
 
-                if (choice == 1) {
-                    catalog.printGravityAndWeightForPlanet(planet);
-                } else if (choice == 2) {
-                    catalog.printEscapeVelocityForPlanet(planet);
-                } else if (choice != 3) {
-                    std::cout << "Invalid choice\n";
-                }
-            } while (choice != 3);
-
-
-            found = true;
-            break;
-        }
-    }
-
-    if (!found) {
+            if (choice == 1) {
+                catalog.printGravityAndWeightForPlanet(*planet);
+            } else if (choice == 2) {
+                catalog.printEscapeVelocityForPlanet(*planet);
+            } else if (choice != 3) {
+                std::cout << "Invalid choice\n";
+            }
+        } while (choice != 3);
+    } else {
         std::cout << "Planet not found. Try exact KOI name (e.g., K00752.02)\n";
     }
 }
+
 
 
 void MainMenu::displayAllPlanets() {
